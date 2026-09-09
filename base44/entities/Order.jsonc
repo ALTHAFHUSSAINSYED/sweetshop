@@ -1,0 +1,56 @@
+{
+  "name": "Order",
+  "type": "object",
+  "properties": {
+    "order_number": {
+      "type": "string"
+    },
+    "customer_name": {
+      "type": "string"
+    },
+    "customer_phone": {
+      "type": "string"
+    },
+    "delivery_address": {
+      "type": "string"
+    },
+    "pincode": {
+      "type": "string"
+    },
+    "delivery_type": {
+      "type": "string",
+      "enum": [
+        "Home Delivery",
+        "Self Pickup"
+      ],
+      "default": "Home Delivery"
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "upi_utr_number": {
+      "type": "string"
+    },
+    "payment_proof_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING_APPROVAL",
+        "PAID",
+        "OUT_FOR_DELIVERY",
+        "DELIVERED",
+        "CANCELLED"
+      ],
+      "default": "PENDING_APPROVAL"
+    }
+  },
+  "required": [
+    "order_number",
+    "customer_name",
+    "customer_phone",
+    "total_amount",
+    "status"
+  ]
+}

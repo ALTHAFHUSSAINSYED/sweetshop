@@ -1,0 +1,45 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Ghee Specials",
+        "Dry Fruit & Kaju",
+        "Bengali Sweets",
+        "Namkeen & Snacks",
+        "Festival Gift Boxes"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "price_250g": {
+      "type": "number"
+    },
+    "price_500g": {
+      "type": "number"
+    },
+    "price_1kg": {
+      "type": "number"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "in_stock": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "price_250g",
+    "price_500g",
+    "price_1kg"
+  ]
+}

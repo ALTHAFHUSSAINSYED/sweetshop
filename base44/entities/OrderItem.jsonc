@@ -1,0 +1,36 @@
+{
+  "name": "OrderItem",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "weight_selected": {
+      "type": "string",
+      "enum": [
+        "250g",
+        "500g",
+        "1kg"
+      ]
+    },
+    "price_at_purchase": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "order_id",
+    "product_name",
+    "quantity",
+    "weight_selected",
+    "price_at_purchase"
+  ]
+}
