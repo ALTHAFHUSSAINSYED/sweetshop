@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, MapPin, Phone, ShieldCheck, ShoppingBag, User } from "lucide-react";
 
 import { useCart } from "@/context/CartContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { DELIVERY_CONFIG, formatINR, SHOP } from "@/lib/shopConfig";
 import Header from "@/components/storefront/Header";
 import Footer from "@/components/storefront/Footer";
@@ -14,6 +15,7 @@ import { Label } from "@/components/ui/label";
 
 export default function Checkout() {
   const { cart, total, clearCart } = useCart();
+  const { t, isTelugu } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     customer_name: "",
@@ -72,11 +74,11 @@ export default function Checkout() {
         <Header />
         <div className="max-w-6xl mx-auto px-4 py-20 text-center">
           <ShoppingBag className="w-14 h-14 mx-auto text-muted-foreground/40" />
-          <h1 className="font-heading text-2xl font-bold mt-4">Your cart is empty</h1>
-          <p className="text-muted-foreground mt-1">Add some sweets before checking out.</p>
+          <h1 className="font-heading text-2xl font-bold mt-4">{t("emptyCartTitle")}</h1>
+          <p className="text-muted-foreground mt-1">{t("emptyCartSubtitle")}</p>
           <Button asChild className="mt-6">
             <Link to="/">
-              <ArrowLeft className="w-4 h-4" /> Back to Sweets
+              <ArrowLeft className="w-4 h-4" /> {t("backToSweets")}
             </Link>
           </Button>
         </div>
@@ -90,23 +92,23 @@ export default function Checkout() {
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Continue shopping
+          <ArrowLeft className="w-4 h-4" /> {t("backToSweets")}
         </Link>
-        <h1 className="font-heading text-3xl font-bold mt-3 mb-6">Checkout</h1>
+        <h1 className="font-heading text-3xl font-bold mt-3 mb-6">{t("checkoutTitle")}</h1>
 
         <form onSubmit={placeOrder} className="grid lg:grid-cols-5 gap-8">
           <div className="lg:col-span-3 space-y-5">
             <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
               <h2 className="font-heading font-bold text-lg flex items-center gap-2">
-                <User className="w-4 h-4 text-primary" /> Your Details
+                <User className="w-4 h-4 text-primary" /> {t("yourDetails")}
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" value={form.customer_name} onChange={set("customer_name")} placeholder="Rahul Sharma" required />
+                  <Label htmlFor="name">{t("fullName")}</Label>
+                  <Input id="name" value={form.customer_name} onChange={set("customer_name")} placeholder={t("fullNamePlaceholder")} required />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="phone">Mobile Number (10 digits)</Label>
+                  <Label htmlFor="phone">{t("phoneLabel")}</Label>
                   <div className="relative">
                     <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -126,7 +128,7 @@ export default function Checkout() {
 
             <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <h2 className="font-heading font-bold text-lg">Delivery &amp; Pickup Options</h2>
+                <h2 className="font-heading font-bold text-lg">{t("deliveryOptions")}</h2>
                 <span className="text-xs bg-primary/10 text-primary font-semibold px-2.5 py-1 rounded-full">
                   ⚡ 20 KM Delivery Radius
                 </span>
@@ -136,13 +138,13 @@ export default function Checkout() {
                 {[
                   {
                     value: "Home Delivery",
-                    label: "Doorstep Delivery (20km)",
-                    sub: "Piduguralla & surrounding villages",
+                    label: t("doorstepDelivery"),
+                    sub: t("doorstepSub"),
                   },
                   {
                     value: "Self Pickup",
-                    label: "Store Self Pickup",
-                    sub: "Collect fresh from Maya Bazar shop",
+                    label: t("storePickup"),
+                    sub: t("storePickupSub"),
                   },
                 ].map((opt) => (
                   <button
@@ -166,9 +168,9 @@ export default function Checkout() {
                   <div className="font-semibold flex items-center gap-1.5 text-primary">
                     <MapPin className="w-4 h-4" /> Store Pickup Location:
                   </div>
-                  <p className="text-foreground text-xs font-medium leading-relaxed">{SHOP.address}</p>
+                  <p className="text-foreground text-xs font-medium leading-relaxed">{isTelugu ? SHOP.addressTe : SHOP.address}</p>
                   <p className="text-xs text-muted-foreground">
-                    🛍️ Your sweets will be packed fresh and ready for pickup at our counter. Zero delivery fee.
+                    🛍️ {isTelugu ? "మీ స్వీట్లను తాజాగా ప్యాక్ చేసి కౌంటర్‌లో సిద్ధంగా ఉంచుతాము. డెలివరీ ఫీజు లేదు." : "Your sweets will be packed fresh and ready for pickup at our counter. Zero delivery fee."}
                   </p>
                 </div>
               )}
@@ -176,14 +178,18 @@ export default function Checkout() {
               {form.delivery_type === "Home Delivery" && (
                 <div className="space-y-4">
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-900 dark:text-amber-200">
-                    <span className="font-semibold block mb-1">🛵 We deliver up to 20 km around Piduguralla:</span>
+                    <span className="font-semibold block mb-1">
+                      {isTelugu ? "🛵 పిడుగురాళ్ల చుట్టుపక్కల 20 కి.మీ వరకు డెలివరీ చేస్తాము:" : "🛵 We deliver up to 20 km around Piduguralla:"}
+                    </span>
                     <p className="text-muted-foreground leading-relaxed">
-                      Covering Piduguralla town and nearby villages: Janapadu, Karampudi, Gurazala, Dachepalli, Rentachintala, Konanki, Brahmanapalli, Pillutla, Julakallu, Morjampadu, Guttikonda, etc.
+                      {isTelugu
+                        ? "పిడుగురాళ్ల టౌన్ మరియు సమీప గ్రామాలు: జానపాడు, కారంపూడి, గురజాల, దాచేపల్లి, రెంటచింతల, కోనంకి, బ్రాహ్మణపల్లి, పిల్లట్ల, జులకల్లు, మోర్జంపాడు, గుత్తికొండ మొదలైనవి."
+                        : "Covering Piduguralla town and nearby villages: Janapadu, Karampudi, Gurazala, Dachepalli, Rentachintala, Konanki, Brahmanapalli, Pillutla, Julakallu, Morjampadu, Guttikonda, etc."}
                     </p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="address">Delivery Address (House / Street / Village)</Label>
+                    <Label htmlFor="address">{t("addressLabel")}</Label>
                     <div className="relative">
                       <MapPin className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
                       <textarea
@@ -191,14 +197,14 @@ export default function Checkout() {
                         className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent pl-9 pr-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         value={form.delivery_address}
                         onChange={set("delivery_address")}
-                        placeholder="e.g. Near Ramalayam, Main Road, Janapadu Village / Flat 101, Maya Bazar, Piduguralla"
+                        placeholder={t("addressPlaceholder")}
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5 sm:w-1/2">
-                    <Label htmlFor="pincode">Pincode (6 digits)</Label>
+                    <Label htmlFor="pincode">{t("pincodeLabel")}</Label>
                     <Input
                       id="pincode"
                       inputMode="numeric"
@@ -222,7 +228,7 @@ export default function Checkout() {
 
           <div className="lg:col-span-2">
             <div className="bg-card border border-border rounded-2xl p-5 lg:sticky lg:top-28 space-y-4">
-              <h2 className="font-heading font-bold text-lg">Order Summary</h2>
+              <h2 className="font-heading font-bold text-lg">{t("orderSummary")}</h2>
               <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                 {cart.map((i) => (
                   <div key={`${i.product_id}-${i.weight}`} className="flex justify-between gap-3 text-sm">
@@ -236,21 +242,21 @@ export default function Checkout() {
                 ))}
               </div>
               <div className="border-t border-border pt-3 flex justify-between items-center">
-                <span className="font-semibold">Total</span>
+                <span className="font-semibold">{t("total")}</span>
                 <span className="font-heading font-bold text-2xl text-primary">{formatINR(total)}</span>
               </div>
               <Button type="submit" className="w-full h-11 text-base" disabled={placing}>
                 {placing ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Placing Order…
+                    <Loader2 className="w-4 h-4 animate-spin" /> {isTelugu ? "ఆర్డర్ అవుతోంది…" : "Placing Order…"}
                   </>
                 ) : (
-                  "Place Order · Pay via UPI"
+                  t("placeOrderButton")
                 )}
               </Button>
               <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 shrink-0 text-accent" />
-                Pay after placing the order — direct UPI, zero gateway fees.
+                {isTelugu ? "ఆర్డర్ చేసిన తర్వాత చెల్లించండి — డైరెక్ట్ UPI, జీరో గేట్‌వే ఫీజులు." : "Pay after placing the order — direct UPI, zero gateway fees."}
               </p>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import { CartProvider } from '@/context/CartContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 import AdminRoute from '@/components/AdminRoute';
 import Home from '@/pages/Home';
 import Checkout from '@/pages/Checkout';
@@ -22,8 +23,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
-        <CartProvider>
-          <Router>
+        <LanguageProvider>
+          <CartProvider>
+            <Router>
             <ScrollToTop />
             <Routes>
               <Route path="/" element={<Home />} />
@@ -41,7 +43,8 @@ export default function App() {
             </Routes>
           </Router>
           <Toaster />
-        </CartProvider>
+          </CartProvider>
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

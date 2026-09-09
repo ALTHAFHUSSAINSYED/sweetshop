@@ -27,9 +27,11 @@ import WhatsAppFloat from "@/components/storefront/WhatsAppFloat";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { buildWhatsAppOrderLink, formatINR, SHOP } from "@/lib/shopConfig";
 import OrderReceiptModal from "@/components/admin/OrderReceiptModal";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Payment() {
   const { orderId } = useParams();
+  const { t, isTelugu } = useLanguage();
   const [data, setData] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -135,10 +137,10 @@ export default function Payment() {
         {/* Order Success Title & Print Bill */}
         <div className="text-center space-y-2">
           <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">
-            🎉 Order Placed Successfully
+            {t("orderSuccessBadge")}
           </span>
           <h1 className="font-heading text-3xl font-bold text-foreground">
-            Order #{order.order_number}
+            {t("orderHeading")} #{order.order_number}
           </h1>
           <p className="text-sm text-muted-foreground">
             Direct UPI to <span className="font-semibold text-foreground">{SHOP.upiId}</span> · 100% Free, Zero Fees
@@ -151,7 +153,7 @@ export default function Payment() {
               onClick={() => setShowReceipt(true)}
               className="gap-2 bg-card hover:bg-secondary border-border shadow-sm text-xs font-semibold"
             >
-              <Printer className="w-4 h-4 text-primary" /> Print / Save Order Bill
+              <Printer className="w-4 h-4 text-primary" /> {t("printBill")}
             </Button>
           </div>
         </div>
@@ -164,14 +166,17 @@ export default function Payment() {
             </div>
             <div className="space-y-1">
               <h2 className="text-xl font-bold text-emerald-900 font-heading">
-                Payment Reported Successfully!
+                {t("paymentReported")}
               </h2>
               <p className="text-sm text-emerald-800">
-                Thank you, <span className="font-semibold">{order.customer_name}</span>! We received your payment notification for{" "}
-                <span className="font-bold">{formatINR(order.total_amount)}</span>.
+                {isTelugu ? (
+                  <>ధన్యవాదాలు, <span className="font-semibold">{order.customer_name}</span>! మీ చెల్లింపు నోటిఫికేషన్ <span className="font-bold">{formatINR(order.total_amount)}</span> అందింది.</>
+                ) : (
+                  <>Thank you, <span className="font-semibold">{order.customer_name}</span>! We received your payment notification for <span className="font-bold">{formatINR(order.total_amount)}</span>.</>
+                )}
               </p>
               <p className="text-xs text-emerald-700">
-                Our team is verifying and preparing your fresh sweets now.
+                {t("orderPreparing")}
               </p>
             </div>
 
@@ -182,11 +187,11 @@ export default function Payment() {
                 rel="noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-colors"
               >
-                <WhatsAppIcon className="w-4 h-4" /> Message Us on WhatsApp
+                <WhatsAppIcon className="w-4 h-4" /> {t("whatsappUs")}
               </a>
               <Button asChild variant="outline" className="w-full sm:w-auto text-sm">
                 <Link to="/">
-                  <ArrowLeft className="w-4 h-4 mr-1.5" /> Order More Sweets
+                  <ArrowLeft className="w-4 h-4 mr-1.5" /> {isTelugu ? "మరిన్ని స్వీట్లు ఆర్డర్ చేయండి" : "Order More Sweets"}
                 </Link>
               </Button>
             </div>
@@ -196,13 +201,13 @@ export default function Payment() {
           <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
             <div className="text-center space-y-1">
               <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                Scan to Pay
+                {t("scanToPay")}
               </p>
               <div className="font-heading font-extrabold text-3xl text-primary">
                 {formatINR(order.total_amount)}
               </div>
               <p className="text-xs text-muted-foreground">
-                Works with PhonePe, Google Pay, Paytm, BHIM or any UPI app
+                {t("scanSubtitle")}
               </p>
             </div>
 
@@ -218,7 +223,7 @@ export default function Payment() {
                 />
               </div>
               <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <QrCode className="w-3.5 h-3.5 text-primary" /> Amount {formatINR(order.total_amount)} is pre-filled
+                <QrCode className="w-3.5 h-3.5 text-primary" /> {isTelugu ? `మొత్తం ${formatINR(order.total_amount)} QR లో సిద్ధంగా ఉంది` : `Amount ${formatINR(order.total_amount)} is pre-filled`}
               </span>
             </div>
 
@@ -228,23 +233,23 @@ export default function Payment() {
               className="w-full inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-3.5 font-bold shadow-md hover:shadow-lg transition-all"
             >
               <Smartphone className="w-5 h-5" />
-              Pay via UPI App (PhonePe / GPay / Paytm)
+              {t("payViaUpiApp")}
             </a>
 
             {/* Shop UPI ID & Copy */}
             <div className="flex items-center justify-between bg-muted/60 rounded-xl px-4 py-3 border border-border/50 text-xs">
               <div>
-                <span className="text-muted-foreground block text-[11px]">Shop UPI ID</span>
+                <span className="text-muted-foreground block text-[11px]">{t("shopUpiId")}</span>
                 <span className="font-mono font-bold text-sm text-foreground">{SHOP.upiId}</span>
               </div>
               <Button variant="outline" size="sm" onClick={copyUpiId} className="h-8 gap-1.5">
                 {copied ? (
                   <>
-                    <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" /> Copied
+                    <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" /> {t("copied")}
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5" /> Copy ID
+                    <Copy className="w-3.5 h-3.5" /> {t("copy")}
                   </>
                 )}
               </Button>
@@ -259,16 +264,16 @@ export default function Payment() {
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" /> Confirming…
+                    <Loader2 className="w-5 h-5 animate-spin" /> {isTelugu ? "ధృవీకరిస్తున్నాము…" : "Confirming…"}
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="w-5 h-5" /> I Have Paid {formatINR(order.total_amount)}
+                    <CheckCircle2 className="w-5 h-5" /> {t("iHavePaid")} ({formatINR(order.total_amount)})
                   </>
                 )}
               </Button>
               <p className="text-[11px] text-center text-muted-foreground mt-2">
-                Click above after paying via QR code to complete your order.
+                {isTelugu ? "QR కోడ్ ద్వారా చెల్లించిన తర్వాత పై బటన్ క్లిక్ చేసి ఆర్డర్ పూర్తి చేయండి." : "Click above after paying via QR code to complete your order."}
               </p>
             </div>
 
