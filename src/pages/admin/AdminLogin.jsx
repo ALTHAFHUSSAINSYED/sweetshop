@@ -1,6 +1,7 @@
 import db from "@/lib/db";
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Candy, Loader2, LockKeyhole } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { SHOP } from "@/lib/shopConfig";
 
 export default function AdminLogin() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -21,7 +23,7 @@ export default function AdminLogin() {
     try {
       await db.auth.loginViaEmailPassword(email.trim(), password);
       const returnTo = new URLSearchParams(window.location.search).get("returnTo") || "/admin";
-      window.location.href = returnTo;
+      navigate(returnTo, { replace: true });
     } catch (err) {
       setError("Invalid credentials. Please check your email and password.");
     } finally {

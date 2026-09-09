@@ -1,6 +1,8 @@
 // Local In-Browser Database Engine for Palnadu Sweets
 // Runs 100% in the frontend with zero backend server required!
 
+import { buildUpiUri } from "@/lib/shopConfig";
+
 const DEFAULT_PRODUCTS = [
   {
     id: "prod_1",
@@ -11,6 +13,7 @@ const DEFAULT_PRODUCTS = [
     price_250g: 175,
     price_500g: 340,
     price_1kg: 660,
+    in_stock: true,
     is_in_stock: true,
     image_url: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop&q=80",
     created_date: new Date().toISOString(),
@@ -24,6 +27,7 @@ const DEFAULT_PRODUCTS = [
     price_250g: 275,
     price_500g: 540,
     price_1kg: 1050,
+    in_stock: true,
     is_in_stock: true,
     image_url: "https://images.unsplash.com/photo-1599785209707-a456fc1337bb?w=600&auto=format&fit=crop&q=80",
     created_date: new Date().toISOString(),
@@ -37,6 +41,7 @@ const DEFAULT_PRODUCTS = [
     price_250g: 140,
     price_500g: 270,
     price_1kg: 520,
+    in_stock: true,
     is_in_stock: true,
     image_url: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=600&auto=format&fit=crop&q=80",
     created_date: new Date().toISOString(),
@@ -50,6 +55,7 @@ const DEFAULT_PRODUCTS = [
     price_250g: 160,
     price_500g: 310,
     price_1kg: 600,
+    in_stock: true,
     is_in_stock: true,
     image_url: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80",
     created_date: new Date().toISOString(),
@@ -63,6 +69,7 @@ const DEFAULT_PRODUCTS = [
     price_250g: 150,
     price_500g: 290,
     price_1kg: 560,
+    in_stock: true,
     is_in_stock: true,
     image_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=600&auto=format&fit=crop&q=80",
     created_date: new Date().toISOString(),
@@ -76,6 +83,7 @@ const DEFAULT_PRODUCTS = [
     price_250g: 300,
     price_500g: 580,
     price_1kg: 1120,
+    in_stock: true,
     is_in_stock: true,
     image_url: "https://images.unsplash.com/photo-1505253758473-96b3015f27eb?w=600&auto=format&fit=crop&q=80",
     created_date: new Date().toISOString(),
@@ -89,6 +97,7 @@ const DEFAULT_PRODUCTS = [
     price_250g: 110,
     price_500g: 210,
     price_1kg: 400,
+    in_stock: true,
     is_in_stock: true,
     image_url: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=600&auto=format&fit=crop&q=80",
     created_date: new Date().toISOString(),
@@ -102,11 +111,16 @@ const DEFAULT_PRODUCTS = [
     price_250g: 350,
     price_500g: 680,
     price_1kg: 1300,
+    in_stock: true,
     is_in_stock: true,
     image_url: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=600&auto=format&fit=crop&q=80",
     created_date: new Date().toISOString(),
   },
 ];
+
+const STORAGE_KEY_PRODUCTS = "palnadu_products_v3";
+const STORAGE_KEY_ORDERS = "palnadu_orders_v3";
+const STORAGE_KEY_ORDER_ITEMS = "palnadu_order_items_v3";
 
 function getStored(key, fallback) {
   try {
@@ -135,53 +149,55 @@ function notifyListeners() {
 }
 
 export function initLocalDatabase() {
-  if (!getStored("palnadu_products", null)) {
-    setStored("palnadu_products", DEFAULT_PRODUCTS);
+  if (!getStored(STORAGE_KEY_PRODUCTS, null)) {
+    setStored(STORAGE_KEY_PRODUCTS, DEFAULT_PRODUCTS);
   }
-  if (!getStored("palnadu_orders", null)) {
-    setStored("palnadu_orders", []);
+  if (!getStored(STORAGE_KEY_ORDERS, null)) {
+    setStored(STORAGE_KEY_ORDERS, []);
   }
-  if (!getStored("palnadu_order_items", null)) {
-    setStored("palnadu_order_items", []);
+  if (!getStored(STORAGE_KEY_ORDER_ITEMS, null)) {
+    setStored(STORAGE_KEY_ORDER_ITEMS, []);
   }
 
   const db = {
     entities: {
       Product: {
         list: async () => {
-          return getStored("palnadu_products", DEFAULT_PRODUCTS);
+          return getStored(STORAGE_KEY_PRODUCTS, DEFAULT_PRODUCTS);
         },
         get: async (id) => {
-          const list = getStored("palnadu_products", DEFAULT_PRODUCTS);
+          const list = getStored(STORAGE_KEY_PRODUCTS, DEFAULT_PRODUCTS);
           return list.find((p) => p.id === id) || null;
         },
         create: async (data) => {
-          const list = getStored("palnadu_products", DEFAULT_PRODUCTS);
+          const list = getStored(STORAGE_KEY_PRODUCTS, DEFAULT_PRODUCTS);
           const newItem = {
             id: "prod_" + Date.now(),
+            in_stock: true,
+            is_in_stock: true,
             created_date: new Date().toISOString(),
             ...data,
           };
           list.unshift(newItem);
-          setStored("palnadu_products", list);
+          setStored(STORAGE_KEY_PRODUCTS, list);
           notifyListeners();
           return newItem;
         },
         update: async (id, data) => {
-          const list = getStored("palnadu_products", DEFAULT_PRODUCTS);
+          const list = getStored(STORAGE_KEY_PRODUCTS, DEFAULT_PRODUCTS);
           const idx = list.findIndex((p) => p.id === id);
           if (idx !== -1) {
             list[idx] = { ...list[idx], ...data };
-            setStored("palnadu_products", list);
+            setStored(STORAGE_KEY_PRODUCTS, list);
             notifyListeners();
             return list[idx];
           }
           return null;
         },
         delete: async (id) => {
-          const list = getStored("palnadu_products", DEFAULT_PRODUCTS);
+          const list = getStored(STORAGE_KEY_PRODUCTS, DEFAULT_PRODUCTS);
           const filtered = list.filter((p) => p.id !== id);
-          setStored("palnadu_products", filtered);
+          setStored(STORAGE_KEY_PRODUCTS, filtered);
           notifyListeners();
           return { success: true };
         },
@@ -189,14 +205,14 @@ export function initLocalDatabase() {
 
       Order: {
         list: async () => {
-          return getStored("palnadu_orders", []);
+          return getStored(STORAGE_KEY_ORDERS, []);
         },
         get: async (id) => {
-          const orders = getStored("palnadu_orders", []);
+          const orders = getStored(STORAGE_KEY_ORDERS, []);
           return orders.find((o) => o.id === id) || null;
         },
         create: async (data) => {
-          const orders = getStored("palnadu_orders", []);
+          const orders = getStored(STORAGE_KEY_ORDERS, []);
           const orderNumber = "ORD-" + Math.floor(100000 + Math.random() * 900000);
           const newOrder = {
             id: "order_" + Date.now(),
@@ -206,16 +222,16 @@ export function initLocalDatabase() {
             ...data,
           };
           orders.unshift(newOrder);
-          setStored("palnadu_orders", orders);
+          setStored(STORAGE_KEY_ORDERS, orders);
           notifyListeners();
           return newOrder;
         },
         update: async (id, data) => {
-          const orders = getStored("palnadu_orders", []);
+          const orders = getStored(STORAGE_KEY_ORDERS, []);
           const idx = orders.findIndex((o) => o.id === id);
           if (idx !== -1) {
             orders[idx] = { ...orders[idx], ...data };
-            setStored("palnadu_orders", orders);
+            setStored(STORAGE_KEY_ORDERS, orders);
             notifyListeners();
             return orders[idx];
           }
@@ -229,17 +245,17 @@ export function initLocalDatabase() {
 
       OrderItem: {
         list: async () => {
-          return getStored("palnadu_order_items", []);
+          return getStored(STORAGE_KEY_ORDER_ITEMS, []);
         },
         create: async (data) => {
-          const items = getStored("palnadu_order_items", []);
+          const items = getStored(STORAGE_KEY_ORDER_ITEMS, []);
           const newItem = {
             id: "item_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
             created_date: new Date().toISOString(),
             ...data,
           };
           items.push(newItem);
-          setStored("palnadu_order_items", items);
+          setStored(STORAGE_KEY_ORDER_ITEMS, items);
           return newItem;
         },
       },
@@ -249,8 +265,8 @@ export function initLocalDatabase() {
       invoke: async (name, args) => {
         if (name === "createOrder") {
           const { items, ...orderData } = args || {};
-          const products = getStored("palnadu_products", DEFAULT_PRODUCTS);
-          
+          const products = getStored(STORAGE_KEY_PRODUCTS, DEFAULT_PRODUCTS);
+
           let total = 0;
           const orderItems = (items || []).map((i) => {
             const product = products.find((p) => p.id === i.product_id);
@@ -287,15 +303,15 @@ export function initLocalDatabase() {
             created_date: new Date().toISOString(),
           };
 
-          const orders = getStored("palnadu_orders", []);
+          const orders = getStored(STORAGE_KEY_ORDERS, []);
           orders.unshift(newOrder);
-          setStored("palnadu_orders", orders);
+          setStored(STORAGE_KEY_ORDERS, orders);
 
-          const allItems = getStored("palnadu_order_items", []);
+          const allItems = getStored(STORAGE_KEY_ORDER_ITEMS, []);
           orderItems.forEach((oi) => {
             allItems.push({ ...oi, order_id: orderId });
           });
-          setStored("palnadu_order_items", allItems);
+          setStored(STORAGE_KEY_ORDER_ITEMS, allItems);
           notifyListeners();
 
           return { data: { order_id: orderId, order_number: orderNumber } };
@@ -303,24 +319,27 @@ export function initLocalDatabase() {
 
         if (name === "getOrderDetails") {
           const { order_id } = args || {};
-          const orders = getStored("palnadu_orders", []);
+          const orders = getStored(STORAGE_KEY_ORDERS, []);
           const order = orders.find((o) => o.id === order_id);
           if (!order) {
             throw new Error("Order not found");
           }
-          const allItems = getStored("palnadu_order_items", []);
+          const allItems = getStored(STORAGE_KEY_ORDER_ITEMS, []);
           const items = allItems.filter((i) => i.order_id === order_id);
+          const upi_uri = buildUpiUri(order.total_amount, order.order_number);
+
           return {
             data: {
               order,
               items,
+              upi_uri,
             },
           };
         }
 
         if (name === "submitPaymentUtr") {
           const { order_id, utr_number, proof_url } = args || {};
-          const orders = getStored("palnadu_orders", []);
+          const orders = getStored(STORAGE_KEY_ORDERS, []);
           const idx = orders.findIndex((o) => o.id === order_id);
           if (idx !== -1) {
             orders[idx] = {
@@ -329,7 +348,7 @@ export function initLocalDatabase() {
               payment_proof_url: proof_url,
               status: "PENDING_APPROVAL",
             };
-            setStored("palnadu_orders", orders);
+            setStored(STORAGE_KEY_ORDERS, orders);
             notifyListeners();
             return { data: { success: true } };
           }
@@ -351,14 +370,15 @@ export function initLocalDatabase() {
         return null;
       },
       loginViaEmailPassword: async (email, password) => {
-        // Admin password check or allow any login for shop owner
         localStorage.setItem("palnadu_admin_auth", "true");
         localStorage.setItem("palnadu_admin_email", email || "abbus2155@gmail.com");
-        return { success: true };
+        notifyListeners();
+        return { success: true, user: { id: "admin_1", email, role: "admin" } };
       },
       logout: async (redirectTo = "/") => {
         localStorage.removeItem("palnadu_admin_auth");
         localStorage.removeItem("palnadu_admin_email");
+        notifyListeners();
         window.location.href = redirectTo;
       },
       redirectToLogin: (returnTo) => {
@@ -387,7 +407,6 @@ export function initLocalDatabase() {
     integrations: {
       Core: {
         UploadFile: async ({ file }) => {
-          // Convert file to base64 so it can be stored directly without external storage
           return new Promise((resolve) => {
             if (!file) {
               resolve({ file_url: "" });

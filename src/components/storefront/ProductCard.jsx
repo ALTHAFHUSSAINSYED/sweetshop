@@ -12,6 +12,8 @@ export default function ProductCard({ product }) {
   const [weight, setWeight] = useState("500g");
   const price = priceForWeight(product, weight);
 
+  const isAvailable = product.in_stock !== false && product.is_in_stock !== false;
+
   const add = () =>
     addItem({
       product_id: product.id,
@@ -32,10 +34,10 @@ export default function ProductCard({ product }) {
         <Image src={product.image_url} alt={product.name} className="w-full aspect-square" />
         <span
           className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm ${
-            product.in_stock ? "bg-emerald-600 text-white" : "bg-destructive text-destructive-foreground"
+            isAvailable ? "bg-emerald-600 text-white" : "bg-destructive text-destructive-foreground"
           }`}
         >
-          {product.in_stock ? "In Stock" : "Sold Out"}
+          {isAvailable ? "In Stock" : "Sold Out"}
         </span>
       </div>
 
@@ -64,7 +66,7 @@ export default function ProductCard({ product }) {
 
         <div className="mt-auto flex items-center justify-between gap-2">
           <span className="font-heading font-bold text-xl text-primary">{formatINR(price)}</span>
-          <Button onClick={add} disabled={!product.in_stock} className="rounded-full">
+          <Button onClick={add} disabled={!isAvailable} className="rounded-full">
             <Plus className="w-4 h-4" /> Add to Cart
           </Button>
         </div>
