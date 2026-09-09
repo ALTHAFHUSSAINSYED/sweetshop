@@ -90,3 +90,87 @@
     @apply bg-background text-foreground font-body;
   }
 }
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide all regular UI when printing */
+  header,
+  footer,
+  nav,
+  .no-print,
+  button,
+  .no-print-area {
+    display: none !important;
+  }
+
+  /* Radix Dialog unpinning during print */
+  [data-radix-portal] {
+    position: static !important;
+    display: block !important;
+  }
+
+  div[role="dialog"] {
+    position: static !important;
+    transform: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* Hide the dark dialog backdrop overlay */
+  div[data-state][class*="fixed inset-0"] {
+    display: none !important;
+  }
+
+  /* Ensure the printable receipt is visible and resets any modal bounds */
+  .printable-order-receipt {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 8mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .printable-order-receipt.thermal-mode {
+    width: 78mm !important;
+    max-width: 78mm !important;
+    padding: 2mm !important;
+    margin: 0 auto !important;
+    font-size: 11px !important;
+  }
+
+  .printable-order-receipt * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .printable-order-receipt table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  @page {
+    margin: 8mm;
+    size: auto;
+  }
+}
+

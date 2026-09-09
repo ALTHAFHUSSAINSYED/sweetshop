@@ -9,6 +9,7 @@ import {
   Copy,
   Loader2,
   MessageCircle,
+  Printer,
   RefreshCw,
   Smartphone,
   Upload,
@@ -22,6 +23,7 @@ import Footer from "@/components/storefront/Footer";
 import WhatsAppFloat from "@/components/storefront/WhatsAppFloat";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { buildWhatsAppOrderLink, formatINR, SHOP } from "@/lib/shopConfig";
+import OrderReceiptModal from "@/components/admin/OrderReceiptModal";
 
 export default function Payment() {
   const { orderId } = useParams();
@@ -35,6 +37,7 @@ export default function Payment() {
   const [submitted, setSubmitted] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(300);
   const [copied, setCopied] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   useEffect(() => {
     db.functions
@@ -144,6 +147,17 @@ export default function Payment() {
           <p className="text-sm text-muted-foreground mt-2">
             Direct UPI to <span className="font-semibold text-foreground">{SHOP.upiId}</span> — 100% free, zero gateway fees.
           </p>
+          <div className="mt-4 flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowReceipt(true)}
+              className="gap-2 bg-card hover:bg-secondary/70 border-border text-foreground shadow-sm"
+            >
+              <Printer className="w-4 h-4 text-primary" /> Print / Save Order Bill
+            </Button>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 items-start">
@@ -302,6 +316,15 @@ export default function Payment() {
             <WhatsAppIcon className="w-5 h-5" /> Confirm on WhatsApp
           </a>
         </div>
+
+        {showReceipt && (
+          <OrderReceiptModal
+            order={order}
+            items={items}
+            isOpen={showReceipt}
+            onClose={() => setShowReceipt(false)}
+          />
+        )}
       </>
     );
   }
