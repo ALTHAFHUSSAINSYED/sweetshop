@@ -37,7 +37,11 @@ export default function ProductCard({ product }) {
       className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm flex flex-col hover:border-primary/40 hover:shadow-md transition-all"
     >
       <div className="relative">
-        <Image src={product.image_url} alt={product.name} className="w-full aspect-square object-cover" />
+        <Image
+          src={product.image_url || "/images/andhra_pure_ghee_sweets.jpg"}
+          alt={product.name}
+          className="w-full aspect-square object-cover"
+        />
         <span
           className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs ${
             isAvailable ? "bg-emerald-600 text-white" : "bg-destructive text-destructive-foreground"
