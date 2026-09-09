@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import Header from "@/components/storefront/Header";
 import Footer from "@/components/storefront/Footer";
 import WhatsAppFloat from "@/components/storefront/WhatsAppFloat";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { buildWhatsAppOrderLink, formatINR, SHOP } from "@/lib/shopConfig";
 
 export default function Payment() {
@@ -298,7 +299,7 @@ export default function Payment() {
             rel="noreferrer"
             className="inline-flex items-center gap-2 bg-[#25D366] text-white rounded-full px-6 py-3 font-semibold hover:opacity-90 transition-opacity shrink-0"
           >
-            <MessageCircle className="w-5 h-5" /> Confirm on WhatsApp
+            <WhatsAppIcon className="w-5 h-5" /> Confirm on WhatsApp
           </a>
         </div>
       </>

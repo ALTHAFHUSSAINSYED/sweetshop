@@ -1,16 +1,17 @@
 const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
 
 import React from "react";
-import { ArrowDown, MessageCircle, Sparkles } from "lucide-react";
+import { ArrowDown, Sparkles } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { SHOP } from "@/lib/shopConfig";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 
 const GIFT_IMG =
   "https://media.db.com/images/public/6aa112672ab451127a3ae617/a6f16ae48_generated_f9154c16.jpg";
 
 export default function Hero() {
   const waHref = `https://wa.me/${SHOP.whatsapp}?text=${encodeURIComponent(
-    `Hello ${SHOP.name}! I would like to place an order 🍬`
+    `Hello ${SHOP.name}! I would like to place an order for fresh sweets.`
   )}`;
 
   return (
@@ -40,7 +41,7 @@ export default function Hero() {
               rel="noreferrer"
               className="inline-flex items-center gap-2 border-2 border-primary/40 text-primary rounded-full px-6 py-3 font-semibold hover:border-primary transition-colors"
             >
-              <MessageCircle className="w-4 h-4" /> Order on WhatsApp
+              <WhatsAppIcon className="w-5 h-5 text-[#25D366]" /> Order on WhatsApp
             </a>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-10 text-sm">
