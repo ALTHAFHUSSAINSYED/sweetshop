@@ -338,14 +338,14 @@ export function initLocalDatabase() {
         }
 
         if (name === "submitPaymentUtr") {
-          const { order_id, utr_number, proof_url } = args || {};
+          const { order_id, utr_number, upi_utr_number, proof_url, payment_proof_url } = args || {};
           const orders = getStored(STORAGE_KEY_ORDERS, []);
           const idx = orders.findIndex((o) => o.id === order_id);
           if (idx !== -1) {
             orders[idx] = {
               ...orders[idx],
-              upi_utr_number: utr_number,
-              payment_proof_url: proof_url,
+              upi_utr_number: upi_utr_number || utr_number || "Paid via UPI QR",
+              payment_proof_url: payment_proof_url || proof_url || orders[idx].payment_proof_url || "",
               status: "PENDING_APPROVAL",
             };
             setStored(STORAGE_KEY_ORDERS, orders);

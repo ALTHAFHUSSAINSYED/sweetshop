@@ -4,12 +4,15 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import {
+  ArrowLeft,
   BadgeCheck,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Copy,
   Loader2,
-  MessageCircle,
   Printer,
+  QrCode,
   RefreshCw,
   Smartphone,
   Upload,
@@ -29,20 +32,28 @@ export default function Payment() {
   const { orderId } = useParams();
   const [data, setData] = useState(null);
   const [loadError, setLoadError] = useState("");
-  const [utr, setUtr] = useState("");
-  const [utrError, setUtrError] = useState("");
-  const [proofUrl, setProofUrl] = useState("");
-  const [uploadingProof, setUploadingProof] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(300);
   const [copied, setCopied] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Optional manual UTR details
+  const [showManualUtr, setShowManualUtr] = useState(false);
+  const [utr, setUtr] = useState("");
+  const [proofUrl, setProofUrl] = useState("");
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [utrError, setUtrError] = useState("");
 
   useEffect(() => {
     db.functions
       .invoke("getOrderDetails", { order_id: orderId })
-      .then((res) => setData(res?.data || res))
+      .then((res) => {
+        const orderData = res?.data || res;
+        setData(orderData);
+        if (orderData?.order?.upi_utr_number) {
+          setSubmitted(true);
+        }
+      })
       .catch((err) =>
         setLoadError(
           err?.response?.data?.error || err?.data?.error || err?.message || "Could not load this order."
@@ -50,17 +61,11 @@ export default function Payment() {
       );
   }, [orderId]);
 
-  useEffect(() => {
-    if (!data || submitted) return;
-    const t = setInterval(() => setSecondsLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
-    return () => clearInterval(t);
-  }, [data, submitted]);
-
   const copyUpiId = async () => {
     try {
       await navigator.clipboard.writeText(SHOP.upiId);
     } catch {
-      /* clipboard unavailable */
+      /* clipboard fallback */
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -74,38 +79,35 @@ export default function Payment() {
       const { file_url } = await db.integrations.Core.UploadFile({ file });
       setProofUrl(file_url);
     } catch {
-      setUtrError("Could not upload the screenshot — you can skip it.");
+      setUtrError("Could not upload screenshot — you can skip it.");
     }
     setUploadingProof(false);
   };
 
-  const submitUtr = async (e) => {
-    e.preventDefault();
-    setUtrError("");
-    if (!/^\d{12}$/.test(utr)) {
-      setUtrError("Enter the 12-digit UPI reference number from your payment app.");
-      return;
-    }
+  // Simple 1-click confirmation
+  const handlePaymentConfirmed = async (manualUtr = "") => {
     setSubmitting(true);
+    setUtrError("");
+    const finalUtr = manualUtr || utr || "Paid via UPI QR";
+
     try {
       await db.functions.invoke("submitPaymentUtr", {
         order_id: orderId,
-        upi_utr_number: utr,
+        upi_utr_number: finalUtr,
         payment_proof_url: proofUrl,
       });
       setSubmitted(true);
-      setData((d) => ({ ...d, order: { ...d.order, upi_utr_number: utr } }));
+      setData((d) => ({
+        ...d,
+        order: { ...d.order, upi_utr_number: finalUtr },
+      }));
     } catch (err) {
       setUtrError(
-        err?.response?.data?.error || err?.data?.error || err?.message || "Could not submit. Please try again."
+        err?.response?.data?.error || err?.data?.error || err?.message || "Could not confirm. Please try again."
       );
     }
     setSubmitting(false);
   };
-
-  const mmss = `${String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:${String(
-    secondsLeft % 60
-  ).padStart(2, "0")}`;
 
   let content;
   if (loadError) {
@@ -129,194 +131,223 @@ export default function Payment() {
     const waLink = buildWhatsAppOrderLink(order, items);
 
     content = (
-      <>
-        {submitted && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl px-4 py-3 flex items-center gap-2.5 mb-8">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <p className="text-sm font-medium">
-              Payment reference submitted! We'll confirm your order as soon as we verify the credit — usually within minutes.
-            </p>
-          </div>
-        )}
-
-        <div className="text-center mb-8">
-          <p className="text-sm text-muted-foreground">Order placed successfully 🎉</p>
-          <h1 className="font-heading text-3xl font-bold mt-1">
-            Pay {formatINR(order.total_amount)} for Order #{order.order_number}
+      <div className="max-w-xl mx-auto space-y-6">
+        {/* Order Success Title & Print Bill */}
+        <div className="text-center space-y-2">
+          <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">
+            🎉 Order Placed Successfully
+          </span>
+          <h1 className="font-heading text-3xl font-bold text-foreground">
+            Order #{order.order_number}
           </h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Direct UPI to <span className="font-semibold text-foreground">{SHOP.upiId}</span> — 100% free, zero gateway fees.
+          <p className="text-sm text-muted-foreground">
+            Direct UPI to <span className="font-semibold text-foreground">{SHOP.upiId}</span> · 100% Free, Zero Fees
           </p>
-          <div className="mt-4 flex justify-center">
+          <div className="pt-2 flex justify-center">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowReceipt(true)}
-              className="gap-2 bg-card hover:bg-secondary/70 border-border text-foreground shadow-sm"
+              className="gap-2 bg-card hover:bg-secondary border-border shadow-sm text-xs font-semibold"
             >
               <Printer className="w-4 h-4 text-primary" /> Print / Save Order Bill
             </Button>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 items-start">
-          {/* Step 1: Pay */}
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading font-bold text-lg flex items-center gap-2">
-                <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">1</span>
-                Pay via UPI
+        {/* Payment Completed Status Banner */}
+        {submitted ? (
+          <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-6 text-center space-y-4 shadow-sm animate-in fade-in">
+            <div className="w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto shadow-md">
+              <CheckCircle2 className="w-7 h-7" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold text-emerald-900 font-heading">
+                Payment Reported Successfully!
               </h2>
-              <span
-                className={`text-sm font-semibold font-mono px-2.5 py-1 rounded-full ${
-                  secondsLeft > 0 ? "bg-emerald-50 text-emerald-700" : "bg-destructive/10 text-destructive"
-                }`}
+              <p className="text-sm text-emerald-800">
+                Thank you, <span className="font-semibold">{order.customer_name}</span>! We received your payment notification for{" "}
+                <span className="font-bold">{formatINR(order.total_amount)}</span>.
+              </p>
+              <p className="text-xs text-emerald-700">
+                Our team is verifying and preparing your fresh sweets now.
+              </p>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-colors"
               >
-                {secondsLeft > 0 ? mmss : "Expired"}
+                <WhatsAppIcon className="w-4 h-4" /> Message Us on WhatsApp
+              </a>
+              <Button asChild variant="outline" className="w-full sm:w-auto text-sm">
+                <Link to="/">
+                  <ArrowLeft className="w-4 h-4 mr-1.5" /> Order More Sweets
+                </Link>
+              </Button>
+            </div>
+          </div>
+        ) : (
+          /* Simple QR Code Payment Card */
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+            <div className="text-center space-y-1">
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                Scan to Pay
+              </p>
+              <div className="font-heading font-extrabold text-3xl text-primary">
+                {formatINR(order.total_amount)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Works with PhonePe, Google Pay, Paytm, BHIM or any UPI app
+              </p>
+            </div>
+
+            {/* QR Code Container */}
+            <div className="flex flex-col items-center justify-center gap-3">
+              <div className="bg-white p-4 rounded-2xl border-4 border-primary/20 shadow-md">
+                <QRCodeSVG
+                  value={upi_uri}
+                  size={220}
+                  bgColor="#ffffff"
+                  fgColor="#1a1a1a"
+                  level="M"
+                />
+              </div>
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <QrCode className="w-3.5 h-3.5 text-primary" /> Amount {formatINR(order.total_amount)} is pre-filled
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5 mb-5">
-              {items.map((i, idx) => (
-                <div key={idx} className="text-xs bg-muted rounded-lg px-2.5 py-2">
-                  <span className="font-medium">{i.product_name}</span>
-                  <span className="text-muted-foreground"> · {i.weight_selected} × {i.quantity}</span>
-                </div>
-              ))}
-            </div>
-
+            {/* Mobile Direct Pay Button */}
             <a
               href={upi_uri}
-              className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-4 py-3.5 font-semibold hover:opacity-90 transition-opacity"
+              className="w-full inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-3.5 font-bold shadow-md hover:shadow-lg transition-all"
             >
               <Smartphone className="w-5 h-5" />
-              Pay via UPI App (GPay / PhonePe / Paytm)
+              Pay via UPI App (PhonePe / GPay / Paytm)
             </a>
 
-            <div className="mt-6">
-              {secondsLeft > 0 ? (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="bg-white p-4 rounded-2xl border-4 border-primary/20 shadow-md">
-                    <QRCodeSVG value={upi_uri} size={208} bgColor="#ffffff" fgColor="#241f18" level="M" />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Scan with any UPI app — amount is pre-filled
-                  </p>
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <p className="text-sm text-muted-foreground mb-3">This session expired for hygiene reasons.</p>
-                  <Button variant="outline" onClick={() => setSecondsLeft(300)}>
-                    <RefreshCw className="w-4 h-4" /> Refresh Payment
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between mt-5 bg-muted rounded-xl px-4 py-3">
+            {/* Shop UPI ID & Copy */}
+            <div className="flex items-center justify-between bg-muted/60 rounded-xl px-4 py-3 border border-border/50 text-xs">
               <div>
-                <p className="text-xs text-muted-foreground">Shop UPI ID</p>
-                <p className="font-mono font-semibold text-sm">{SHOP.upiId}</p>
+                <span className="text-muted-foreground block text-[11px]">Shop UPI ID</span>
+                <span className="font-mono font-bold text-sm text-foreground">{SHOP.upiId}</span>
               </div>
-              <Button variant="outline" size="sm" onClick={copyUpiId}>
+              <Button variant="outline" size="sm" onClick={copyUpiId} className="h-8 gap-1.5">
                 {copied ? (
                   <>
-                    <BadgeCheck className="w-4 h-4 text-emerald-600" /> Copied
+                    <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" /> Copied
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4" /> Copy UPI ID
+                    <Copy className="w-3.5 h-3.5" /> Copy ID
                   </>
                 )}
               </Button>
             </div>
-          </div>
 
-          {/* Step 2: UTR */}
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <h2 className="font-heading font-bold text-lg flex items-center gap-2 mb-1">
-              <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">2</span>
-              Enter Payment Reference (UTR)
-            </h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              After paying, find the 12-digit UPI Reference / UTR number in your payment app's history.
-            </p>
-
-            <form onSubmit={submitUtr} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="utr">12-digit UPI Reference / UTR Number</Label>
-                <Input
-                  id="utr"
-                  inputMode="numeric"
-                  maxLength={12}
-                  className="font-mono tracking-widest"
-                  placeholder="428901238910"
-                  value={submitted ? order.upi_utr_number : utr}
-                  onChange={(e) => setUtr(e.target.value.replace(/\D/g, ""))}
-                  disabled={submitted}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="proof">Payment Screenshot (optional)</Label>
-                {proofUrl ? (
-                  <p className="text-sm text-emerald-700 font-medium">Screenshot attached ✓</p>
+            {/* One-Click Done Button */}
+            <div className="pt-2">
+              <Button
+                onClick={() => handlePaymentConfirmed()}
+                disabled={submitting}
+                className="w-full h-12 text-base font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Confirming…
+                  </>
                 ) : (
-                  <label
-                    className={`flex items-center gap-2 border-2 border-dashed border-border rounded-xl px-4 py-3 text-sm text-muted-foreground cursor-pointer hover:border-primary/50 transition-colors ${
-                      submitted ? "pointer-events-none opacity-50" : ""
-                    }`}
-                  >
-                    <Upload className="w-4 h-4" />
-                    {uploadingProof ? "Uploading…" : "Attach a screenshot (optional)"}
-                    <input id="proof" type="file" accept="image/*" className="hidden" onChange={onProof} disabled={submitted} />
-                  </label>
+                  <>
+                    <CheckCircle2 className="w-5 h-5" /> I Have Paid {formatINR(order.total_amount)}
+                  </>
                 )}
-              </div>
+              </Button>
+              <p className="text-[11px] text-center text-muted-foreground mt-2">
+                Click above after paying via QR code to complete your order.
+              </p>
+            </div>
 
-              {utrError && <p className="text-sm text-destructive">{utrError}</p>}
+            {/* Optional Manual UTR Toggle */}
+            <div className="border-t border-border pt-3">
+              <button
+                type="button"
+                onClick={() => setShowManualUtr((prev) => !prev)}
+                className="w-full flex items-center justify-between text-xs text-muted-foreground hover:text-foreground py-1 font-medium"
+              >
+                <span>Have a 12-digit UTR Reference or Screenshot? (Optional)</span>
+                {showManualUtr ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
 
-              {!submitted ? (
-                <Button type="submit" className="w-full h-11" disabled={submitting || uploadingProof}>
-                  {submitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Submitting…
-                    </>
-                  ) : (
-                    "Submit Payment Reference"
-                  )}
-                </Button>
-              ) : (
-                <p className="text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-                  Reference #{order.upi_utr_number} received — awaiting shop confirmation.
-                </p>
+              {showManualUtr && (
+                <div className="mt-3 space-y-3 p-3.5 bg-muted/40 rounded-xl border border-border/60 text-xs">
+                  <div className="space-y-1">
+                    <Label htmlFor="manual-utr" className="text-xs">
+                      12-digit UPI Reference / UTR Number (optional)
+                    </Label>
+                    <Input
+                      id="manual-utr"
+                      inputMode="numeric"
+                      maxLength={12}
+                      placeholder="e.g. 428901238910"
+                      value={utr}
+                      onChange={(e) => setUtr(e.target.value.replace(/\D/g, ""))}
+                      className="font-mono text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Payment Screenshot (optional)</Label>
+                    {proofUrl ? (
+                      <p className="text-xs text-emerald-700 font-semibold">Screenshot uploaded ✓</p>
+                    ) : (
+                      <label className="flex items-center gap-2 border border-dashed border-border rounded-lg p-2.5 text-muted-foreground cursor-pointer hover:border-primary/50">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{uploadingProof ? "Uploading…" : "Upload screenshot (optional)"}</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={onProof} />
+                      </label>
+                    )}
+                  </div>
+
+                  {utrError && <p className="text-xs text-destructive">{utrError}</p>}
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handlePaymentConfirmed(utr)}
+                    disabled={submitting}
+                    className="w-full text-xs"
+                  >
+                    Submit Reference
+                  </Button>
+                </div>
               )}
-            </form>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Step 3: WhatsApp */}
-        <div className="mt-8 bg-[#25D366]/10 border border-[#25D366]/30 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* WhatsApp Help & Order Items Summary */}
+        <div className="bg-[#25D366]/10 border border-[#25D366]/30 rounded-2xl p-4 flex items-center justify-between gap-3 text-xs">
           <div>
-            <h2 className="font-heading font-bold text-lg flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-[#25D366] text-white text-sm font-bold flex items-center justify-center">3</span>
-              Confirm Order on WhatsApp
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Send us your order details on WhatsApp so we can start packing right away.
-            </p>
+            <p className="font-semibold text-foreground">Need help with your payment?</p>
+            <p className="text-muted-foreground mt-0.5">Chat with our Maya Bazar shop team directly</p>
           </div>
           <a
             href={waLink}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 bg-[#25D366] text-white rounded-full px-6 py-3 font-semibold hover:opacity-90 transition-opacity shrink-0"
+            className="inline-flex items-center gap-1.5 bg-[#25D366] text-white px-3.5 py-2 rounded-xl font-semibold hover:opacity-90 transition-opacity shrink-0"
           >
-            <WhatsAppIcon className="w-5 h-5" /> Confirm on WhatsApp
+            <WhatsAppIcon className="w-4 h-4" /> WhatsApp
           </a>
         </div>
 
+        {/* Printable Modal */}
         {showReceipt && (
           <OrderReceiptModal
             order={order}
@@ -325,7 +356,7 @@ export default function Payment() {
             onClose={() => setShowReceipt(false)}
           />
         )}
-      </>
+      </div>
     );
   }
 

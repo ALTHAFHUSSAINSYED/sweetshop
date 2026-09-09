@@ -145,7 +145,7 @@ export default function OrdersPanel() {
         <div className="space-y-4">
           {orders.map((o) => {
             const orderItems = itemsFor(o.id);
-            const canApprove = o.status === "PENDING_APPROVAL" && o.upi_utr_number;
+            const canApprove = o.status === "PENDING_APPROVAL";
             return (
               <div key={o.id} className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:border-primary/30 transition-colors">
                 <div className="flex flex-wrap items-center gap-3 justify-between">
@@ -161,7 +161,7 @@ export default function OrdersPanel() {
                       </span>
                       {canApprove && (
                         <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                          Verify UTR &amp; approve
+                          {o.upi_utr_number && o.upi_utr_number !== "Paid via UPI QR" ? `Ref: ${o.upi_utr_number}` : "Awaiting approval"}
                         </span>
                       )}
                     </div>
