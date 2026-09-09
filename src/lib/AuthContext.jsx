@@ -6,7 +6,10 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const getInitialAuth = () => {
     try {
-      return localStorage.getItem("palnadu_admin_auth") === "true";
+      return (
+        localStorage.getItem("palnadu_admin_auth") === "true" &&
+        localStorage.getItem("palnadu_admin_mfa") === "true"
+      );
     } catch {
       return false;
     }
@@ -52,8 +55,19 @@ export const AuthProvider = ({ children }) => {
     setIsLoadingAuth(true);
     try {
       const res = await db.auth.loginViaEmailPassword(email, password);
+      // Password passed; Step 1 complete. MFA is now required before setting isAuthenticated to true.
+      return res;
+    } finally {
+      setIsLoadingAuth(false);
+    }
+  };
+
+  const verifyMfa = async (pin) => {
+    setIsLoadingAuth(true);
+    try {
+      const res = await db.auth.verifyMfaPin(pin);
       setIsAuthenticated(true);
-      const currentUser = { id: "admin_1", email: email || "abbus2155@gmail.com", role: "admin" };
+      const currentUser = { id: "admin_1", email: localStorage.getItem("palnadu_admin_email") || "abbus2155@gmail.com", role: "admin" };
       setUser(currentUser);
       setAuthChecked(true);
       return res;
@@ -83,6 +97,7 @@ export const AuthProvider = ({ children }) => {
         appPublicSettings,
         authChecked,
         login,
+        verifyMfa,
         logout,
         navigateToLogin,
         checkUserAuth: checkAppState,

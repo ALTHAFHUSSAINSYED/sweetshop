@@ -36,14 +36,6 @@ export default function Footer() {
                 Sweets Catalog
               </Link>
             </li>
-            <li>
-              <Link
-                className="hover:text-primary transition-colors"
-                to="/admin/login?returnTo=%2Fadmin"
-              >
-                Shop Owner Login
-              </Link>
-            </li>
           </ul>
         </div>
       </div>

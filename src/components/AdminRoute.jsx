@@ -7,7 +7,8 @@ export default function AdminRoute() {
 
   const isLocalStorageAuthed =
     typeof window !== "undefined" &&
-    localStorage.getItem("palnadu_admin_auth") === "true";
+    localStorage.getItem("palnadu_admin_auth") === "true" &&
+    localStorage.getItem("palnadu_admin_mfa") === "true";
 
   if (isLoadingAuth && !isLocalStorageAuthed) {
     return (

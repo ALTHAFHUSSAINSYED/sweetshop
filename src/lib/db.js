@@ -361,10 +361,16 @@ export function initLocalDatabase() {
 
     auth: {
       isAuthenticated: async () => {
-        return localStorage.getItem("palnadu_admin_auth") === "true";
+        return (
+          localStorage.getItem("palnadu_admin_auth") === "true" &&
+          localStorage.getItem("palnadu_admin_mfa") === "true"
+        );
       },
       me: async () => {
-        if (localStorage.getItem("palnadu_admin_auth") === "true") {
+        if (
+          localStorage.getItem("palnadu_admin_auth") === "true" &&
+          localStorage.getItem("palnadu_admin_mfa") === "true"
+        ) {
           return { id: "admin_1", email: "abbus2155@gmail.com", role: "admin" };
         }
         return null;
@@ -376,8 +382,50 @@ export function initLocalDatabase() {
         }
         localStorage.setItem("palnadu_admin_auth", "true");
         localStorage.setItem("palnadu_admin_email", email || "abbus2155@gmail.com");
+        // Clear previous MFA verification on new login to force strict second factor
+        localStorage.removeItem("palnadu_admin_mfa");
         notifyListeners();
-        return { success: true, user: { id: "admin_1", email, role: "admin" } };
+        return { success: true, requireMfa: true, user: { id: "admin_1", email, role: "admin" } };
+      },
+      verifyMfaPin: async (pin) => {
+        const lockoutTime = Number(localStorage.getItem("palnadu_admin_mfa_lockout") || 0);
+        const now = Date.now();
+        if (lockoutTime > now) {
+          const minutesLeft = Math.ceil((lockoutTime - now) / 60000);
+          throw new Error(`Security Lockout: Too many failed PIN attempts. Please wait ${minutesLeft} minute(s).`);
+        }
+
+        const currentPin = localStorage.getItem("palnadu_admin_mfa_pin") || "938167";
+        if (pin !== currentPin) {
+          let attempts = Number(localStorage.getItem("palnadu_admin_mfa_attempts") || 0) + 1;
+          if (attempts >= 3) {
+            localStorage.setItem("palnadu_admin_mfa_lockout", (now + 10 * 60 * 1000).toString());
+            localStorage.setItem("palnadu_admin_mfa_attempts", "0");
+            throw new Error("Security Lockout: 3 failed attempts. Locked for 10 minutes.");
+          } else {
+            localStorage.setItem("palnadu_admin_mfa_attempts", attempts.toString());
+            throw new Error(`Incorrect 6-digit MFA PIN. ${3 - attempts} attempt(s) remaining.`);
+          }
+        }
+
+        // Verification successful
+        localStorage.removeItem("palnadu_admin_mfa_attempts");
+        localStorage.removeItem("palnadu_admin_mfa_lockout");
+        localStorage.setItem("palnadu_admin_mfa", "true");
+        localStorage.setItem("palnadu_admin_mfa_time", now.toString());
+        notifyListeners();
+        return { success: true };
+      },
+      changeMfaPin: async (oldPin, newPin) => {
+        const currentPin = localStorage.getItem("palnadu_admin_mfa_pin") || "938167";
+        if (oldPin !== currentPin) {
+          throw new Error("Current MFA PIN is incorrect.");
+        }
+        if (!/^\d{6}$/.test(newPin)) {
+          throw new Error("New MFA PIN must be exactly 6 numeric digits.");
+        }
+        localStorage.setItem("palnadu_admin_mfa_pin", newPin);
+        return { success: true };
       },
       changePassword: async (oldPassword, newPassword) => {
         const currentPassword = localStorage.getItem("palnadu_admin_password") || "Palnadu@123";
@@ -392,6 +440,7 @@ export function initLocalDatabase() {
       },
       logout: async (redirectTo = "/") => {
         localStorage.removeItem("palnadu_admin_auth");
+        localStorage.removeItem("palnadu_admin_mfa");
         localStorage.removeItem("palnadu_admin_email");
         notifyListeners();
         window.location.href = redirectTo;
