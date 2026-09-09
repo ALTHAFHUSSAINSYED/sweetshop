@@ -22,11 +22,10 @@ export default function Hero() {
             <Sparkles className="w-3.5 h-3.5" /> Fresh batch every morning
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mt-4">
-            Sweets made the <span className="text-primary italic">grandmother's</span> way.
+            Every sweet crafted with <span className="text-primary italic">Amma's pure love</span> &amp; tradition.
           </h1>
           <p className="text-muted-foreground text-lg mt-4 max-w-md">
-            Pure desi ghee, premium dry fruits, zero compromises. Order online and pay
-            directly via UPI — no gateway fees, ever.
+            Pure cow ghee, authentic village recipes, and the sweet nostalgia of home. Fresh daily for Piduguralla and surrounding villages.
           </p>
           <div className="flex flex-wrap gap-3 mt-8">
             <a
