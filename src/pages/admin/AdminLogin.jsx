@@ -1,5 +1,3 @@
-import db from "@/lib/db";
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Candy, Loader2, LockKeyhole } from "lucide-react";
@@ -8,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SHOP } from "@/lib/shopConfig";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const { login } = useAuth();
+  const [email, setEmail] = useState("abbus2155@gmail.com");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,11 +21,11 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
     try {
-      await db.auth.loginViaEmailPassword(email.trim(), password);
+      await login(email.trim(), password);
       const returnTo = new URLSearchParams(window.location.search).get("returnTo") || "/admin";
       navigate(returnTo, { replace: true });
     } catch (err) {
-      setError("Invalid credentials. Please check your email and password.");
+      setError(err?.message || "Invalid credentials. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -43,6 +43,12 @@ export default function AdminLogin() {
         </div>
 
         <form onSubmit={submit} className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm">
+          {error && (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="admin-email">Email</Label>
             <Input
@@ -50,10 +56,11 @@ export default function AdminLogin() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="owner@mithaidelight.com"
+              placeholder="abbus2155@gmail.com"
               required
             />
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="admin-password">Password</Label>
             <Input
@@ -61,23 +68,24 @@ export default function AdminLogin() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Enter your password"
               required
             />
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Signing in…
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Signing In…
               </>
             ) : (
               <>
-                <LockKeyhole className="w-4 h-4" /> Sign In
+                <LockKeyhole className="w-4 h-4 mr-2" /> Sign In
               </>
             )}
           </Button>
-          <p className="text-xs text-center text-muted-foreground">
+
+          <p className="text-xs text-center text-muted-foreground mt-4">
             Access is restricted to shop administrators.
           </p>
         </form>

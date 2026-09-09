@@ -4,8 +4,20 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const getInitialAuth = () => {
+    try {
+      return localStorage.getItem("palnadu_admin_auth") === "true";
+    } catch {
+      return false;
+    }
+  };
+
+  const [isAuthenticated, setIsAuthenticated] = useState(getInitialAuth);
+  const [user, setUser] = useState(() => {
+    return getInitialAuth()
+      ? { id: "admin_1", email: "abbus2155@gmail.com", role: "admin" }
+      : null;
+  });
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
@@ -14,10 +26,6 @@ export const AuthProvider = ({ children }) => {
     id: "palnadu-sweets",
     public_settings: { shop_name: "Palnadu Sweets" },
   });
-
-  useEffect(() => {
-    checkAppState();
-  }, []);
 
   const checkAppState = async () => {
     try {
@@ -29,15 +37,29 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUser(null);
       }
-      setAuthChecked(true);
     } catch {
       setIsAuthenticated(false);
+    } finally {
       setAuthChecked(true);
     }
   };
 
-  const checkUserAuth = async () => {
-    return checkAppState();
+  useEffect(() => {
+    checkAppState();
+  }, []);
+
+  const login = async (email, password) => {
+    setIsLoadingAuth(true);
+    try {
+      const res = await db.auth.loginViaEmailPassword(email, password);
+      setIsAuthenticated(true);
+      const currentUser = { id: "admin_1", email: email || "abbus2155@gmail.com", role: "admin" };
+      setUser(currentUser);
+      setAuthChecked(true);
+      return res;
+    } finally {
+      setIsLoadingAuth(false);
+    }
   };
 
   const logout = (shouldRedirect = true) => {
@@ -60,9 +82,10 @@ export const AuthProvider = ({ children }) => {
         authError,
         appPublicSettings,
         authChecked,
+        login,
         logout,
         navigateToLogin,
-        checkUserAuth,
+        checkUserAuth: checkAppState,
         checkAppState,
       }}
     >
