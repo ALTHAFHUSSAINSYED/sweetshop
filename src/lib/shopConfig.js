@@ -88,14 +88,33 @@ export const buildWhatsAppOrderLink = (order, items) => {
 };
 
 export const buildWhatsAppStatusLink = (order, statusLabel) => {
+  let statusMessage = "Thank you for ordering with Palnadu Sweets! 🙏";
+  if (statusLabel === "Paid & Confirmed" || statusLabel === "PAID") {
+    statusMessage = "✅ *Payment Verified & Confirmed!* We have verified your payment and our kitchen is preparing and packing your fresh sweets right away. 🍬";
+  } else if (statusLabel === "Out for Delivery") {
+    statusMessage = "🛵 *Out for Delivery!* Your sweets parcel is on the way to your doorstep.";
+  } else if (statusLabel === "Delivered") {
+    statusMessage = "🎉 *Order Delivered!* Thank you for shopping with Palnadu Sweets. Enjoy the authentic pure ghee sweets! ✨";
+  } else if (statusLabel === "Cancelled") {
+    statusMessage = "⚠️ *Order Cancelled.* If your payment was deducted or you need assistance, please reply directly to this message.";
+  }
+
   const lines = [
-    `🍬 *Update on your Palnadu Sweets order*`,
+    `🍬 *Update from ${SHOP.name}*`,
     "",
-    `*Order ID:* #${order.order_number}`,
-    `*Status:* ${statusLabel}`,
-    `*Total:* ₹${order.total_amount}`,
+    `📋 *Order ID:* #${order.order_number}`,
+    `👤 *Customer:* ${order.customer_name}`,
+    `📦 *Status:* ${statusLabel}`,
+    `💰 *Total Amount:* ₹${order.total_amount}`,
     "",
-    "Thank you for ordering from Palnadu Sweets! 🙏",
+    statusMessage,
+    "",
+    order.delivery_type === "Home Delivery"
+      ? `📍 *Delivery Address:* ${order.delivery_address} (${order.pincode})`
+      : `🏪 *Pickup Counter:* Maya Bazar Shop, Piduguralla`,
+    "",
+    `📞 *Shop WhatsApp / Phone:* ${SHOP.phone}`,
+    "✨ *Handcrafted Daily with Pure Cow Ghee & Love*",
   ];
   return `https://wa.me/91${order.customer_phone}?text=${encodeURIComponent(lines.join("\n"))}`;
 };

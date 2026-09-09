@@ -87,11 +87,18 @@ export default function OrdersPanel() {
     return items.filter((i) => i.order_id === orderId);
   };
 
-  const updateStatus = async (order, status) => {
+  const updateStatus = async (order, status, shouldOpenWhatsApp = false) => {
     setBusyId(order.id);
     try {
       await db.entities.Order.update(order.id, { status });
       await load();
+      if (shouldOpenWhatsApp && order.customer_phone) {
+        const link = buildWhatsAppStatusLink(
+          { ...order, status },
+          STATUS_LABELS[status] || status
+        );
+        window.open(link, "_blank");
+      }
     } catch {
       /* refresh shows current state */
     }
@@ -255,16 +262,16 @@ export default function OrdersPanel() {
 
                   {canApprove && (
                     <Button
-                      onClick={() => updateStatus(o, "PAID")}
+                      onClick={() => updateStatus(o, "PAID", true)}
                       disabled={busyId === o.id}
-                      className="bg-emerald-600 hover:bg-emerald-600/90 text-white"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 shadow-sm"
                     >
                       {busyId === o.id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <BadgeCheck className="w-4 h-4" />
                       )}
-                      Approve Payment
+                      Approve &amp; WhatsApp Confirmation
                     </Button>
                   )}
 
