@@ -370,10 +370,25 @@ export function initLocalDatabase() {
         return null;
       },
       loginViaEmailPassword: async (email, password) => {
+        const currentPassword = localStorage.getItem("palnadu_admin_password") || "Palnadu@123";
+        if (password !== currentPassword) {
+          throw new Error("Incorrect password. Please enter your valid admin password.");
+        }
         localStorage.setItem("palnadu_admin_auth", "true");
         localStorage.setItem("palnadu_admin_email", email || "abbus2155@gmail.com");
         notifyListeners();
         return { success: true, user: { id: "admin_1", email, role: "admin" } };
+      },
+      changePassword: async (oldPassword, newPassword) => {
+        const currentPassword = localStorage.getItem("palnadu_admin_password") || "Palnadu@123";
+        if (oldPassword !== currentPassword) {
+          throw new Error("Current password is incorrect.");
+        }
+        if (!newPassword || newPassword.trim().length < 4) {
+          throw new Error("New password must be at least 4 characters long.");
+        }
+        localStorage.setItem("palnadu_admin_password", newPassword.trim());
+        return { success: true };
       },
       logout: async (redirectTo = "/") => {
         localStorage.removeItem("palnadu_admin_auth");
