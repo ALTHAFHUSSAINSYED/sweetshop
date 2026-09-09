@@ -92,6 +92,12 @@
 }
 
 @media print {
+  /* 1. Completely hide the background application tree */
+  #root,
+  body > *:not([data-radix-portal]) {
+    display: none !important;
+  }
+
   body {
     background: #ffffff !important;
     color: #000000 !important;
@@ -99,7 +105,7 @@
     padding: 0 !important;
   }
 
-  /* Hide all regular UI when printing */
+  /* 2. Hide all regular navigation, buttons & action toolbars */
   header,
   footer,
   nav,
@@ -109,10 +115,20 @@
     display: none !important;
   }
 
-  /* Radix Dialog unpinning during print */
+  /* 3. Radix Dialog unpinning and backdrop removal */
   [data-radix-portal] {
     position: static !important;
     display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide the dark dialog backdrop overlay */
+  div[data-state][class*="fixed inset-0"],
+  [data-radix-portal] > div[class*="fixed inset-0"] {
+    display: none !important;
   }
 
   div[role="dialog"] {
@@ -126,22 +142,18 @@
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    margin: 0 !important;
     background: #ffffff !important;
   }
 
-  /* Hide the dark dialog backdrop overlay */
-  div[data-state][class*="fixed inset-0"] {
-    display: none !important;
-  }
-
-  /* Ensure the printable receipt is visible and resets any modal bounds */
+  /* 4. Receipt container formatting */
   .printable-order-receipt {
     display: block !important;
     position: static !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
-    padding: 8mm !important;
+    margin: 0 auto !important;
+    padding: 6mm !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
@@ -169,8 +181,9 @@
   }
 
   @page {
-    margin: 8mm;
+    margin: 6mm;
     size: auto;
   }
 }
+
 

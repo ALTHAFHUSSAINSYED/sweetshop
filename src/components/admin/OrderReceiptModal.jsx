@@ -10,6 +10,10 @@ export default function OrderReceiptModal({ order, items = [], isOpen, onClose }
   if (!order) return null;
 
   const handlePrint = () => {
+    const root = document.getElementById("root");
+    if (root) {
+      root.classList.add("no-print");
+    }
     window.print();
   };
 
