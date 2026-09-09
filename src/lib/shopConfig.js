@@ -62,23 +62,28 @@ export const buildWhatsAppOrderLink = (order, items) => {
   const lines = [
     "🛍️ *New Order Placed at Palnadu Sweets*",
     "",
-    `*Order ID:* #${order.order_number}`,
-    `*Customer:* ${order.customer_name} (${order.customer_phone})`,
-    "*Items:*",
+    `📋 *Order ID:* #${order.order_number}`,
+    `👤 *Customer:* ${order.customer_name} (${order.customer_phone})`,
+    "",
+    "🍬 *Items Ordered:*",
     ...items.map(
-      (i) => `- ${i.product_name} (${i.weight_selected}) x ${i.quantity}`
+      (i) => `  • ${i.product_name} (${i.weight_selected}) × ${i.quantity}`
     ),
-    `*Total Amount:* ₹${order.total_amount}`,
+    "",
+    `💰 *Total Amount:* ₹${order.total_amount}`,
   ];
   if (order.delivery_type === "Home Delivery") {
-    lines.push("*Delivery Type:* Doorstep Delivery (Within 20km Radius)");
-    lines.push(`*Delivery Address:* ${order.delivery_address} - ${order.pincode}`);
+    lines.push("🛵 *Delivery Type:* Doorstep Delivery (Within 20km)");
+    lines.push(`📍 *Delivery Address:* ${order.delivery_address} - ${order.pincode}`);
   } else {
-    lines.push("*Delivery Type:* Store Self Pickup (Maya Bazar Shop, Piduguralla)");
+    lines.push("🛍️ *Delivery Type:* Store Self Pickup (Maya Bazar Shop, Piduguralla)");
+    lines.push("📍 *Pickup Location:* Near Sangam Dairy, Beside Jio Office, Maya Bazar");
   }
   if (order.upi_utr_number) {
-    lines.push(`*UPI UTR / Ref No:* ${order.upi_utr_number}`);
+    lines.push(`💳 *PhonePe UPI UTR:* ${order.upi_utr_number}`);
   }
+  lines.push("");
+  lines.push("🙏 *Thank you for choosing Palnadu Sweets!* ✨");
   return `https://wa.me/${SHOP.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
 };
 

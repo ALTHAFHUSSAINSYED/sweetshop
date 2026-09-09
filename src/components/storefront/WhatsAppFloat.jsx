@@ -3,7 +3,7 @@ import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { SHOP } from "@/lib/shopConfig";
 
 export default function WhatsAppFloat() {
-  const message = `Hello ${SHOP.name}! I would like to place an order for fresh sweets.`;
+  const message = `Hello ${SHOP.name}! \u{1F64F}\nI would like to place an order for fresh sweets \u{1F36C}\u{2728}`;
   const href = `https://wa.me/${SHOP.whatsapp}?text=${encodeURIComponent(message)}`;
 
   return (

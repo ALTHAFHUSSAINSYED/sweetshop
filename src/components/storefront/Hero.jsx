@@ -11,7 +11,7 @@ const GIFT_IMG =
 
 export default function Hero() {
   const waHref = `https://wa.me/${SHOP.whatsapp}?text=${encodeURIComponent(
-    `Hello ${SHOP.name}! I would like to place an order for fresh sweets.`
+    `Hello ${SHOP.name}! \u{1F64F}\nI would like to place an order for fresh sweets \u{1F36C}\u{2728}`
   )}`;
 
   return (
